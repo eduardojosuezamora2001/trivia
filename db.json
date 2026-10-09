@@ -1,0 +1,169 @@
+{
+  "users": [
+    {
+      "nombre": "eduardo",
+      "apellido": "z",
+      "edad": 18,
+      "createdAt": "2026-09-21T16:49:12.164Z",
+      "id": "ZMPzUSCeiz4"
+    },
+    {
+      "nombre": "eduardo",
+      "apellido": "jzv",
+      "edad": 18,
+      "createdAt": "2026-09-21T16:53:00.613Z",
+      "id": "GWXPBVw5abM"
+    },
+    {
+      "nombre": "yarisel",
+      "apellido": "monink",
+      "edad": 18,
+      "createdAt": "2026-09-21T16:54:25.761Z",
+      "id": "tFEe1g3ijdc"
+    },
+    {
+      "nombre": "peep",
+      "apellido": "asdas",
+      "edad": 29,
+      "createdAt": "2026-09-21T16:58:32.378Z",
+      "id": "5RsdKsBP9AQ"
+    },
+    {
+      "nombre": "sdfs",
+      "apellido": "df",
+      "edad": 18,
+      "createdAt": "2026-09-21T17:04:16.514Z",
+      "id": "Ck3T7yDTWHI"
+    },
+    {
+      "nombre": "uyt",
+      "apellido": "rr",
+      "edad": 18,
+      "createdAt": "2026-09-21T17:17:24.025Z",
+      "id": "5yaVF9HUSu4"
+    },
+    {
+      "nombre": "ooo",
+      "apellido": "oo",
+      "edad": 18,
+      "createdAt": "2026-09-21T17:18:07.867Z",
+      "id": "lMR8GVrTPPE"
+    },
+    {
+      "nombre": "asda",
+      "apellido": "sdas",
+      "edad": 18,
+      "createdAt": "2026-09-21T19:15:42.113Z",
+      "id": "eLoD-LdVlO4"
+    },
+    {
+      "nombre": "pepe",
+      "apellido": "mar",
+      "edad": 18,
+      "createdAt": "2026-09-21T19:16:57.931Z",
+      "id": "zKpojs1OURM"
+    },
+    {
+      "nombre": "jared",
+      "apellido": "monick",
+      "edad": 20,
+      "createdAt": "2026-09-21T19:38:40.906Z",
+      "id": "tHDszSyVzJ8"
+    }
+  ],
+  "scores": [
+    {
+      "puntaje": 40,
+      "tematicas": [
+        "pokemon"
+      ],
+      "fecha": "2026-09-21T16:49:12.164Z",
+      "userId": "ZMPzUSCeiz4",
+      "id": "B2VAcsrWaAM"
+    },
+    {
+      "puntaje": 30,
+      "tematicas": [
+        "pokemon"
+      ],
+      "fecha": "2026-09-21T16:53:00.613Z",
+      "userId": "GWXPBVw5abM",
+      "id": "YNwCpsg66sI"
+    },
+    {
+      "puntaje": 30,
+      "tematicas": [
+        "dragonball"
+      ],
+      "fecha": "2026-09-21T16:54:25.761Z",
+      "userId": "tFEe1g3ijdc",
+      "id": "LFwNrmzaLEc"
+    },
+    {
+      "puntaje": 0,
+      "tematicas": [
+        "pokemon"
+      ],
+      "fecha": "2026-09-21T16:58:32.378Z",
+      "userId": "5RsdKsBP9AQ",
+      "id": "x3FXa_QwdrI"
+    },
+    {
+      "puntaje": 10,
+      "tematicas": [
+        "pokemon"
+      ],
+      "fecha": "2026-09-21T17:04:16.514Z",
+      "userId": "Ck3T7yDTWHI",
+      "id": "Fiu20-uqsUc"
+    },
+    {
+      "puntaje": 0,
+      "tematicas": [
+        "pokemon"
+      ],
+      "fecha": "2026-09-21T17:17:24.025Z",
+      "userId": "5yaVF9HUSu4",
+      "id": "vyCwHbgR3xo"
+    },
+    {
+      "puntaje": 0,
+      "tematicas": [
+        "pokemon"
+      ],
+      "fecha": "2026-09-21T17:18:07.867Z",
+      "userId": "lMR8GVrTPPE",
+      "id": "V0zipHB7kDU"
+    },
+    {
+      "puntaje": 50,
+      "tematicas": [
+        "simpsons"
+      ],
+      "fecha": "2026-09-21T19:15:42.113Z",
+      "userId": "eLoD-LdVlO4",
+      "id": "BV4z9XJNDgg"
+    },
+    {
+      "puntaje": 100,
+      "tematicas": [
+        "simpsons",
+        "dragonball"
+      ],
+      "fecha": "2026-09-21T19:16:57.931Z",
+      "userId": "zKpojs1OURM",
+      "id": "YzRBhevNCJQ"
+    },
+    {
+      "puntaje": 90,
+      "tematicas": [
+        "dragonball",
+        "rickandmorty"
+      ],
+      "fecha": "2026-09-21T19:38:40.906Z",
+      "userId": "tHDszSyVzJ8",
+      "id": "V8UvkPQCVCk"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}

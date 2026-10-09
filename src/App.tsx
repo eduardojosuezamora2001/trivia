@@ -1,21 +1,27 @@
-import { Button } from "@/components/ui/button"
+import { Route, Routes } from "react-router-dom"
+import { Menu } from "@/components/Menu"
+import { PartidaProvider } from "@/context/PartidaContext"
+import { Home } from "@/pages/Home"
+import { Jugar } from "@/pages/Jugar"
+import { Partida } from "@/pages/Partida"
+import { Puntajes } from "@/pages/Puntajes"
+import { JugadorDetalle } from "@/pages/JugadorDetalle"
 
-export function App() {
+export default function App() {
   return (
-    <div className="flex min-h-svh p-6">
-      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
-        <div>
-          <h1 className="font-medium">Project ready!</h1>
-          <p>You may now add components and start building.</p>
-          <p>We&apos;ve already added the button component for you.</p>
-          <Button className="mt-2">Button</Button>
-        </div>
-        <div className="font-mono text-xs text-muted-foreground">
-          (Press <kbd>d</kbd> to toggle dark mode)
+    <PartidaProvider>
+      <div className="min-h-screen bg-slate-950 text-white">
+        <div className="mx-auto max-w-6xl px-4 py-6">
+          <Menu />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/jugar" element={<Jugar />} />
+            <Route path="/partida" element={<Partida />} />
+            <Route path="/puntajes" element={<Puntajes />} />
+            <Route path="/jugador/:id" element={<JugadorDetalle />} />
+          </Routes>
         </div>
       </div>
-    </div>
+    </PartidaProvider>
   )
 }
-
-export default App

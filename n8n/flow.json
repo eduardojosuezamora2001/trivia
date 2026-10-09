@@ -1,0 +1,423 @@
+{
+  "name": "Trivia Multiverso - n8n + json-server",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## POST /guardar-puntaje\nn8n valida y persiste usuarios + puntajes en json-server.\n\nSi n8n corre en Docker, json-server debe ser `http://host.docker.internal:3001` (no localhost).",
+        "height": 240,
+        "width": 380
+      },
+      "id": "note-save",
+      "name": "Nota - Guardar",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-120, -100]
+    },
+    {
+      "parameters": {
+        "content": "## GET /leaderboard\nn8n consulta scores + users en json-server y arma el ranking.",
+        "height": 220,
+        "width": 360
+      },
+      "id": "note-board",
+      "name": "Nota - Leaderboard",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-120, 650]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "guardar-puntaje",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "webhook-save",
+      "name": "Webhook - Guardar Puntaje",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [300, 0],
+      "webhookId": "save-score-json-server"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json || {};\nconst body = raw.body && typeof raw.body === 'object' ? raw.body : raw;\nconst nombre = String(body.nombre || '').trim();\nconst apellido = String(body.apellido || '').trim();\nconst edad = Number(body.edad);\nconst puntaje = Number(body.puntaje);\nconst tematicas = Array.isArray(body.tematicas) ? body.tematicas : [];\nconst fecha = body.fecha || new Date().toISOString();\nconst fallos = Array.isArray(body.fallos) ? body.fallos.map((f) => ({\n  tematica: String(f?.tematica || ''),\n  nombreCorrecto: String(f?.nombreCorrecto || ''),\n  imagen: String(f?.imagen || ''),\n  respuesta: String(f?.respuesta || '')\n})) : [];\n\nconst errores = [];\nif (!nombre) errores.push('nombre es requerido');\nif (!apellido) errores.push('apellido es requerido');\nif (!Number.isFinite(edad) || edad <= 0) errores.push('edad inválida');\nif (!Number.isFinite(puntaje) || puntaje < 0) errores.push('puntaje inválido');\nif (!tematicas.length) errores.push('debe incluir al menos una temática');\n\nreturn [{ json: {\n  valido: errores.length === 0,\n  errores,\n  usuario: { nombre, apellido, edad, createdAt: fecha },\n  score: { puntaje, tematicas, fecha, fallos }\n}}];"
+      },
+      "id": "validate-save",
+      "name": "Validar y Normalizar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [520, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "valid-true",
+              "leftValue": "={{ $json.valido }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-valid",
+      "name": "IF - Datos Válidos",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [740, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseCode": 400,
+        "responseBody": "={{ JSON.stringify({ ok: false, message: ($json.errores || []).join(', '), errores: $json.errores }) }}"
+      },
+      "id": "bad-request",
+      "name": "Respond - 400",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [960, 160]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:3001/users",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.usuario) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": false
+            }
+          }
+        }
+      },
+      "id": "post-user",
+      "name": "json-server - Crear Usuario",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, -80],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const user = $input.first().json;\nconst original = $('Validar y Normalizar').first().json;\nreturn [{ json: {\n  ...original.score,\n  userId: user.id\n}}];"
+      },
+      "id": "prepare-score",
+      "name": "Preparar Puntaje",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1180, -80]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:3001/scores",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "post-score",
+      "name": "json-server - Guardar Puntaje",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1400, -80],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://host.docker.internal:3001/scores",
+        "options": {
+          "response": {
+            "response": {
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      },
+      "id": "get-scores-save",
+      "name": "json-server - Leer Scores",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1620, -80],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const incoming = $input.first().json;\nconst scores = Array.isArray(incoming.data) ? incoming.data : Array.isArray(incoming) ? incoming : $input.all().map(i => i.json).filter(s => s && s.puntaje !== undefined);\nconst saved = $('json-server - Guardar Puntaje').first().json;\nconst ordered = [...scores].sort((a,b) => Number(b.puntaje) - Number(a.puntaje));\nconst posicion = ordered.findIndex(s => String(s.id) === String(saved.id)) + 1;\nreturn [{ json: {\n  ok: true,\n  mensaje: 'Puntaje guardado correctamente',\n  registro: saved,\n  posicion: posicion || null,\n  totalJugadores: ordered.length\n}}];"
+      },
+      "id": "rank-save",
+      "name": "Calcular Posición",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1840, -80]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond-save",
+      "name": "Respond - Guardado",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [2060, -80]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "leaderboard",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "webhook-board",
+      "name": "Webhook - Leaderboard",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [300, 760],
+      "webhookId": "leaderboard-json-server"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://host.docker.internal:3001/scores",
+        "options": {
+          "response": {
+            "response": {
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      },
+      "id": "get-scores",
+      "name": "json-server - Scores",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [520, 700],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://host.docker.internal:3001/users",
+        "options": {
+          "response": {
+            "response": {
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      },
+      "id": "get-users",
+      "name": "json-server - Users",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [520, 820],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "function unwrap(items) {\n  if (!items || !items.length) return [];\n  const json = items[0].json;\n  if (Array.isArray(json?.data)) return json.data;\n  if (Array.isArray(json?.scores)) return json.scores;\n  if (Array.isArray(json?.users)) return json.users;\n  if (Array.isArray(json)) return json;\n  return items.map(i => i.json).filter(row => row && typeof row === 'object' && !Array.isArray(row));\n}\n\nconst scores = unwrap($('json-server - Scores').all());\nconst users = unwrap($('json-server - Users').all());\nconst byId = new Map(users.map(u => [String(u.id), u]));\nconst webhook = $('Webhook - Leaderboard').first().json || {};\nconst query = webhook.query || {};\nconst tematica = String(query.tematica || '').toLowerCase();\nconst limit = Number(query.limit) > 0 ? Number(query.limit) : 10;\n\nlet rows = scores\n  .filter(s => s && s.puntaje !== undefined)\n  .map(s => {\n    const u = byId.get(String(s.userId)) || {};\n    return {\n      ...s,\n      nombre: u.nombre || '',\n      apellido: u.apellido || '',\n      edad: u.edad || null\n    };\n  });\n\nif (tematica) {\n  rows = rows.filter(r => Array.isArray(r.tematicas) && r.tematicas.map(x => String(x).toLowerCase()).includes(tematica));\n}\n\nrows.sort((a,b) => Number(b.puntaje) - Number(a.puntaje));\nconst leaderboard = rows.slice(0, limit).map((r,i) => ({ posicion: i + 1, ...r }));\nreturn [{ json: { ok: true, total: rows.length, leaderboard } }];"
+      },
+      "id": "build-board",
+      "name": "Construir Leaderboard",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [980, 760]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond-board",
+      "name": "Respond - Leaderboard",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1200, 760]
+    }
+  ],
+  "connections": {
+    "Webhook - Guardar Puntaje": {
+      "main": [
+        [
+          {
+            "node": "Validar y Normalizar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar y Normalizar": {
+      "main": [
+        [
+          {
+            "node": "IF - Datos Válidos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Datos Válidos": {
+      "main": [
+        [
+          {
+            "node": "json-server - Crear Usuario",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond - 400",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "json-server - Crear Usuario": {
+      "main": [
+        [
+          {
+            "node": "Preparar Puntaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Puntaje": {
+      "main": [
+        [
+          {
+            "node": "json-server - Guardar Puntaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "json-server - Guardar Puntaje": {
+      "main": [
+        [
+          {
+            "node": "json-server - Leer Scores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "json-server - Leer Scores": {
+      "main": [
+        [
+          {
+            "node": "Calcular Posición",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calcular Posición": {
+      "main": [
+        [
+          {
+            "node": "Respond - Guardado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook - Leaderboard": {
+      "main": [
+        [
+          {
+            "node": "json-server - Scores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "json-server - Scores": {
+      "main": [
+        [
+          {
+            "node": "json-server - Users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "json-server - Users": {
+      "main": [
+        [
+          {
+            "node": "Construir Leaderboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir Leaderboard": {
+      "main": [
+        [
+          {
+            "node": "Respond - Leaderboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}
